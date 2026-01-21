@@ -127,7 +127,7 @@ AUTH_FEATURES = {
     "OTP_EXPIRY_MINUTES": 10,
 
     # OTP length
-    "OTP_LENGTH": 6,
+    "OTP_LENGTH": 4,
 }
 ```
 
