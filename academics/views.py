@@ -10,22 +10,16 @@ from .models import Course, UploadCourseDocuments
 from .serializers import CourseSerializer, CourseListSerializer, UploadCourseDocumentsSerializer
 
 
-class CourseListCreateView(generics.ListCreateAPIView):
+class CourseListView(generics.ListAPIView):
     """
-    API view for listing and creating courses.
+    API view for listing courses.
     
     GET: List all courses
-    POST: Create a new course
     """
 
     queryset = Course.objects.all()
+    serializer_class = CourseListSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-    def get_serializer_class(self):
-        """Use different serializers for list and create operations."""
-        if self.request.method == 'GET':
-            return CourseListSerializer
-        return CourseSerializer
 
     @extend_schema(
         summary="List all courses",
@@ -37,20 +31,6 @@ class CourseListCreateView(generics.ListCreateAPIView):
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
-
-    @extend_schema(
-        summary="Create a new course",
-        description="Create a new course with units.",
-        request=CourseSerializer,
-        responses={
-            201: CourseSerializer,
-            400: "Bad Request - Invalid input data",
-            401: "Unauthorized - Authentication required"
-        },
-        tags=['Academics']
-    )
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
 
 
 class CourseDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -135,7 +115,7 @@ class UploadCourseDocumentView(generics.CreateAPIView):
 
     @extend_schema(
         summary="Upload course document",
-        description="Upload a document for a course. If course_id is provided and exists, uses that course. Otherwise creates a new course with the provided course_name.",
+        description="Upload a document for a course. Automatically creates the course if it doesn't exist based on course_name.",
         request=UploadCourseDocumentsSerializer,
         responses={
             201: UploadCourseDocumentsSerializer,

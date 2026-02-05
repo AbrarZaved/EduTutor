@@ -131,14 +131,12 @@ class UploadCourseDocumentsSerializer(serializers.ModelSerializer):
 
     course_name = serializers.CharField(write_only=True, required=True)
     course_description = serializers.CharField(write_only=True, required=False, allow_blank=True)
-    course_id = serializers.IntegerField(write_only=True, required=False)
     course_details = CourseListSerializer(source='course', read_only=True)
 
     class Meta:
         model = UploadCourseDocuments
         fields = [
             'id',
-            'course_id',
             'course_name',
             'course_description',
             'course_details',
@@ -151,24 +149,12 @@ class UploadCourseDocumentsSerializer(serializers.ModelSerializer):
         """Create or get course and upload document."""
         course_name = validated_data.pop('course_name')
         course_description = validated_data.pop('course_description', '')
-        course_id = validated_data.pop('course_id', None)
 
-        # Try to get course by ID first, then by name, or create new
-        if course_id:
-            try:
-                course = Course.objects.get(id=course_id)
-            except Course.DoesNotExist:
-                # If ID doesn't exist, create new course
-                course = Course.objects.create(
-                    name=course_name,
-                    description=course_description
-                )
-        else:
-            # Get or create course by name
-            course, created = Course.objects.get_or_create(
-                name=course_name,
-                defaults={'description': course_description}
-            )
+        # Get or create course by name
+        course, created = Course.objects.get_or_create(
+            name=course_name,
+            defaults={'description': course_description}
+        )
 
         # Create document upload
         validated_data['course'] = course
