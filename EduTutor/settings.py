@@ -94,6 +94,8 @@ INSTALLED_APPS = [
     # Local apps
     'core_auth',
     'Profile',
+    'utilities',
+    'academics',
 ]
 
 MIDDLEWARE = [
@@ -257,7 +259,6 @@ SPECTACULAR_SETTINGS = {
 - User Registration and Authentication
 - JWT Token Management
 - Profile Management
-- Password Management (Change & Reset)
 - Email Verification
 - OTP-based verification
 
@@ -278,12 +279,31 @@ Authorization: Bearer <your_access_token>
     'LICENSE': {
         'name': 'MIT License'
     },
-    'TAGS': [
-        {'name': 'Authentication', 'description': 'User authentication and JWT token management'},
-        {'name': 'Profile', 'description': 'User profile management'},
-        {'name': 'Password Management', 'description': 'Password change and reset operations'},
-        {'name': 'Email Verification', 'description': 'Email verification with OTP'},
+    # Automatic tag discovery and organization
+    'TAGS': None,  # Set to None to auto-discover tags from views
+    'SORT_OPERATIONS': True,  # Sort operations alphabetically
+    'SORT_OPERATION_PARAMETERS': True,  # Sort parameters alphabetically
+    'ENUM_NAME_OVERRIDES': {},
+    'PREPROCESSING_HOOKS': [],
+    'POSTPROCESSING_HOOKS': [
+        'drf_spectacular.hooks.postprocess_schema_enums',
     ],
+    # Group operations by tags automatically
+    'SCHEMA_COERCE_METHOD_NAMES': {},
+    'CAMELIZE_NAMES': False,
+    'SERVERS': [],
+    # Show all endpoints in Swagger UI
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': True,
+        'filter': True,  # Enable search filter
+        'tagsSorter': 'alpha',  # Sort tags alphabetically
+        'operationsSorter': 'alpha',  # Sort operations alphabetically
+        'docExpansion': 'list',  # Expand/collapse operations
+        'defaultModelsExpandDepth': 2,
+        'defaultModelExpandDepth': 2,
+    },
 }
 
 

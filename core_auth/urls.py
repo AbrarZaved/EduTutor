@@ -8,15 +8,11 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenVerifyView
 
 from .views import (
-    EmailVerificationConfirmView,
     ForgotPasswordRequestView,
     ForgotPasswordVerifyOTPView,
     ForgotPasswordResetView,
     LoginView,
     LogoutView,
-    PasswordChangeView,
-    ProfileUpdateView,
-    ProfileView,
     RegisterView,
     TokenRefreshAPIView,
 )
@@ -35,17 +31,6 @@ urlpatterns = [
     # JWT Token Management
     path("token/refresh/", TokenRefreshAPIView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
-    # =========================================================================
-    # PROFILE ENDPOINTS
-    # =========================================================================
-    # Profile View & Update
-    path("profile/", ProfileView.as_view(), name="profile"),
-    path("profile/update/", ProfileUpdateView.as_view(), name="profile_update"),
-    # =========================================================================
-    # PASSWORD MANAGEMENT ENDPOINTS
-    # =========================================================================
-    # Password Change (authenticated user, knows current password)
-    path("password/change/", PasswordChangeView.as_view(), name="password_change"),
     
     # =========================================================================
     # FORGOT PASSWORD ENDPOINTS (3-step process)
@@ -67,14 +52,5 @@ urlpatterns = [
         "forgot-password/reset/",
         ForgotPasswordResetView.as_view(),
         name="forgot_password_reset",
-    ),
-    
-    # =========================================================================
-    # EMAIL VERIFICATION ENDPOINTS
-    # =========================================================================
-    path(
-        "email/verify/confirm/",
-        EmailVerificationConfirmView.as_view(),
-        name="email_verify_confirm",
     ),
 ]

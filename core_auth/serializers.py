@@ -112,68 +112,6 @@ class LoginSerializer(serializers.Serializer):
     )
 
 
-class ProfileUpdateSerializer(serializers.ModelSerializer):
-    """
-    Serializer for updating user profile.
-
-    Only allows updating non-sensitive profile fields.
-    """
-
-    class Meta:
-        model = User
-        fields = [
-            "first_name",
-            "last_name",
-            "phone_number",
-            "role",
-        ]
-
-    def validate_phone_number(self, value):
-        """Validate phone number format."""
-        if value:
-            # Remove spaces and dashes
-            cleaned = value.replace(" ", "").replace("-", "")
-            if not cleaned.replace("+", "").isdigit():
-                raise serializers.ValidationError(
-                    "Phone number must contain only digits, spaces, dashes, or a leading plus sign."
-                )
-        return value
-
-
-class PasswordChangeSerializer(serializers.Serializer):
-    """
-    Serializer for changing password (when user is logged in).
-    """
-
-    current_password = serializers.CharField(
-        required=True, write_only=True, style={"input_type": "password"}
-    )
-    new_password = serializers.CharField(
-        required=True,
-        write_only=True,
-        validators=[validate_password],
-        style={"input_type": "password"},
-    )
-    confirm_password = serializers.CharField(
-        required=True, write_only=True, style={"input_type": "password"}
-    )
-
-    def validate(self, attrs):
-        """Validate passwords."""
-        if attrs["new_password"] != attrs["confirm_password"]:
-            raise serializers.ValidationError(
-                {"confirm_password": "New passwords do not match."}
-            )
-        return attrs
-
-    def validate_current_password(self, value):
-        """Validate that current password is correct."""
-        user = self.context["request"].user
-        if not user.check_password(value):
-            raise serializers.ValidationError("Current password is incorrect.")
-        return value
-
-
 class PasswordResetRequestSerializer(serializers.Serializer):
     """
     Serializer for requesting password reset.
@@ -182,7 +120,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
     """
 
     email = serializers.EmailField(required=True)
-    print(email)
+    
     def validate_email(self, value):
         """Validate that the email exists in the system."""
         # We don't reveal if email exists or not for security
@@ -222,11 +160,3 @@ class PasswordResetNewPasswordSerializer(serializers.Serializer):
                 {"confirm_password": "Passwords do not match."}
             )
         return attrs
-
-class EmailVerificationSerializer(serializers.Serializer):
-    """
-    Serializer for email verification.
-    """
-
-    email = serializers.EmailField(required=True)
-    otp = serializers.CharField(required=True, min_length=4, max_length=10)

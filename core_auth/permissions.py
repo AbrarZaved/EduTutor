@@ -93,3 +93,48 @@ class IsAdminUser(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return request.user and request.user.is_staff
+
+
+class IsTeacher(permissions.BasePermission):
+    """
+    Permission class that only allows users with the 'teacher' role.
+    """
+
+    message = "You must be a teacher to access this resource."
+
+    def has_permission(self, request, view):
+        return (
+            request.user
+            and request.user.is_authenticated
+            and getattr(request.user, "role", None) == "teacher"
+        )
+    
+
+class IsStudent(permissions.BasePermission):
+    """
+    Permission class that only allows users with the 'student' role.
+    """
+
+    message = "You must be a student to access this resource."
+
+    def has_permission(self, request, view):
+        return (
+            request.user
+            and request.user.is_authenticated
+            and getattr(request.user, "role", None) == "student"
+        )
+        
+
+class IsParent(permissions.BasePermission):
+    """
+    Permission class that only allows users with the 'parent' role.
+    """
+
+    message = "You must be a parent to access this resource."
+
+    def has_permission(self, request, view):
+        return (
+            request.user
+            and request.user.is_authenticated
+            and getattr(request.user, "role", None) == "parent"
+        )

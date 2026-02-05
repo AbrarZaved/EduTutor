@@ -14,13 +14,15 @@ from drf_spectacular.views import (
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/auth/', include('core_auth.urls', namespace='core_auth')),
+    path('api/v1/profile/', include('Profile.urls', namespace='profile')),
+    path('api/v1/utilities/', include('utilities.urls', namespace='utilities')),
+    path('api/v1/academics/', include('academics.urls', namespace='academics')),
     
     # API Documentation URLs
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     path('', SpectacularSwaggerView.as_view(url_name='schema'), name='api-docs'),  # Root redirects to Swagger
-    path('api/v1/profile/', include('Profile.urls', namespace='profile')),
 ]
 
 # Serve media files in development
