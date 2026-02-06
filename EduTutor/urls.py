@@ -17,6 +17,8 @@ urlpatterns = [
     path('api/v1/profile/', include('Profile.urls', namespace='profile')),
     path('api/v1/utilities/', include('utilities.urls', namespace='utilities')),
     path('api/v1/academics/', include('academics.urls', namespace='academics')),
+    path('api/v1/admin-dashboard/', include('AdminDashboard.urls', namespace='admin_dashboard')),
+    path('api/v1/parent/', include('ParentDashboard.urls', namespace='parent_dashboard')),
     
     # API Documentation URLs
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

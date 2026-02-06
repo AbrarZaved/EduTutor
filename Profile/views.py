@@ -17,7 +17,11 @@ from .serializers import (
     PasswordChangeSerializer,
     ProfileUpdateSerializer,
     UserSerializer,
+    AdminProfileSerializer,
+    AdminProfileUpdateSerializer,
+    AdminProfileCreateSerializer,
 )
+from .models import AdminProfile
 
 User = get_user_model()
 
@@ -264,3 +268,282 @@ class EmailVerificationConfirmView(APIView):
         return Response(
             {"error": "Invalid or expired OTP."}, status=status.HTTP_400_BAD_REQUEST
         )
+
+
+# ============================================================================
+# AdminProfile Views
+# ============================================================================
+
+
+class AdminProfileListView(generics.ListAPIView):
+    """
+    API view for listing all admin profiles.
+
+    Endpoint: GET /api/profile/admins/
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AdminProfileSerializer
+    queryset = AdminProfile.objects.all().select_related('user')
+
+    @extend_schema(
+        summary="List all admin profiles",
+        description="Retrieve a list of all admin profiles. Requires authentication.",
+        responses={
+            200: AdminProfileSerializer(many=True),
+            401: "Unauthorized - Authentication required"
+        },
+        tags=['AdminProfile']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+
+class AdminProfileDetailView(generics.RetrieveAPIView):
+    """
+    API view for retrieving a specific admin profile.
+
+    Endpoint: GET /api/profile/admins/<admin_id>/
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AdminProfileSerializer
+    queryset = AdminProfile.objects.all().select_related('user')
+    lookup_field = 'admin_id'
+
+    @extend_schema(
+        summary="Get admin profile details",
+        description="Retrieve detailed information about a specific admin profile by admin_id.",
+        responses={
+            200: AdminProfileSerializer,
+            404: "Not Found - Admin profile does not exist",
+            401: "Unauthorized - Authentication required"
+        },
+        tags=['AdminProfile']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+
+class AdminProfileCreateView(generics.CreateAPIView):
+    """
+    API view for creating a new admin profile.
+
+    Endpoint: POST /api/profile/admins/create/
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AdminProfileCreateSerializer
+
+    @extend_schema(
+        summary="Create admin profile",
+        description="Create a new admin profile for an existing user with 'school_admin' role.",
+        request=AdminProfileCreateSerializer,
+        responses={
+            201: OpenApiResponse(
+                description="Admin profile created successfully",
+                response=AdminProfileSerializer,
+            ),
+            400: "Bad Request - Invalid input data or profile already exists",
+            401: "Unauthorized - Authentication required"
+        },
+        tags=['AdminProfile']
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        admin_profile = serializer.save()
+        
+        return Response(
+            {
+                "message": "Admin profile created successfully.",
+                "admin_profile": AdminProfileSerializer(admin_profile).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class AdminProfileUpdateView(generics.UpdateAPIView):
+    """
+    API view for updating an admin profile.
+
+    Endpoint: PUT/PATCH /api/profile/admins/<admin_id>/update/
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AdminProfileUpdateSerializer
+    queryset = AdminProfile.objects.all()
+    lookup_field = 'admin_id'
+
+    @extend_schema(
+        summary="Update admin profile",
+        description="Update admin profile information. Supports full update with PUT and partial update with PATCH.",
+        request=AdminProfileUpdateSerializer,
+        responses={
+            200: OpenApiResponse(
+                description="Admin profile updated successfully",
+                response=AdminProfileSerializer,
+            ),
+            400: "Bad Request - Invalid input data",
+            404: "Not Found - Admin profile does not exist",
+            401: "Unauthorized - Authentication required"
+        },
+        tags=['AdminProfile']
+    )
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(
+            {
+                "message": "Admin profile updated successfully.",
+                "admin_profile": AdminProfileSerializer(instance).data,
+            }
+        )
+
+    @extend_schema(
+        summary="Partially update admin profile",
+        description="Partially update admin profile information using PATCH method.",
+        request=AdminProfileUpdateSerializer,
+        responses={
+            200: OpenApiResponse(
+                description="Admin profile updated successfully",
+                response=AdminProfileSerializer,
+            ),
+            400: "Bad Request - Invalid input data",
+            404: "Not Found - Admin profile does not exist",
+            401: "Unauthorized - Authentication required"
+        },
+        tags=['AdminProfile']
+    )
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+
+
+class AdminProfileDeleteView(generics.DestroyAPIView):
+    """
+    API view for deleting an admin profile.
+
+    Endpoint: DELETE /api/profile/admins/<admin_id>/delete/
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = AdminProfile.objects.all()
+    lookup_field = 'admin_id'
+
+    @extend_schema(
+        summary="Delete admin profile",
+        description="Delete a specific admin profile. This does not delete the associated user.",
+        responses={
+            204: "No Content - Admin profile deleted successfully",
+            404: "Not Found - Admin profile does not exist",
+            401: "Unauthorized - Authentication required"
+        },
+        tags=['AdminProfile']
+    )
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
+
+
+class CurrentAdminProfileView(generics.RetrieveAPIView):
+    """
+    API view for retrieving the current user's admin profile.
+
+    Endpoint: GET /api/profile/admin/me/
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AdminProfileSerializer
+
+    @extend_schema(
+        summary="Get current user's admin profile",
+        description="Retrieve the authenticated user's admin profile if they have one.",
+        responses={
+            200: AdminProfileSerializer,
+            404: "Not Found - Current user does not have an admin profile",
+            401: "Unauthorized - Authentication required"
+        },
+        tags=['AdminProfile']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_object(self):
+        """Get the admin profile for the current authenticated user."""
+        try:
+            return AdminProfile.objects.select_related('user').get(user=self.request.user)
+        except AdminProfile.DoesNotExist:
+            from rest_framework.exceptions import NotFound
+            raise NotFound("Admin profile not found for current user.")
+
+
+class CurrentAdminProfileUpdateView(generics.UpdateAPIView):
+    """
+    API view for updating the current user's admin profile.
+
+    Endpoint: PUT/PATCH /api/profile/admin/me/update/
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AdminProfileUpdateSerializer
+
+    @extend_schema(
+        summary="Update current user's admin profile",
+        description="Update the authenticated user's admin profile. Supports partial updates with PATCH.",
+        request=AdminProfileUpdateSerializer,
+        responses={
+            200: OpenApiResponse(
+                description="Admin profile updated successfully",
+                response=AdminProfileSerializer,
+            ),
+            400: "Bad Request - Invalid input data",
+            404: "Not Found - Current user does not have an admin profile",
+            401: "Unauthorized - Authentication required"
+        },
+        tags=['AdminProfile']
+    )
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(
+            {
+                "message": "Admin profile updated successfully.",
+                "admin_profile": AdminProfileSerializer(instance).data,
+            }
+        )
+
+    @extend_schema(
+        summary="Partially update current user's admin profile",
+        description="Partially update the authenticated user's admin profile.",
+        request=AdminProfileUpdateSerializer,
+        responses={
+            200: OpenApiResponse(
+                description="Admin profile updated successfully",
+                response=AdminProfileSerializer,
+            ),
+            400: "Bad Request - Invalid input data",
+            404: "Not Found - Current user does not have an admin profile",
+            401: "Unauthorized - Authentication required"
+        },
+        tags=['AdminProfile']
+    )
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+
+    def get_object(self):
+        """Get the admin profile for the current authenticated user."""
+        try:
+            return AdminProfile.objects.get(user=self.request.user)
+        except AdminProfile.DoesNotExist:
+            from rest_framework.exceptions import NotFound
+            raise NotFound("Admin profile not found for current user.")
+

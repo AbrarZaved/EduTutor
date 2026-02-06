@@ -143,3 +143,5 @@ Thumbs.db
 
 # Keep directories but ignore contents
 !.gitkeep
+test_academics_api.py
+test_parent_dashboard_api.py

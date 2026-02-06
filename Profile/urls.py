@@ -11,6 +11,13 @@ from .views import (
     ProfileDeleteView,
     ProfileView,
     ProfileUpdateView,
+    AdminProfileListView,
+    AdminProfileDetailView,
+    AdminProfileCreateView,
+    AdminProfileUpdateView,
+    AdminProfileDeleteView,
+    CurrentAdminProfileView,
+    CurrentAdminProfileUpdateView,
 )
 
 app_name = "Profile"
@@ -28,4 +35,15 @@ urlpatterns = [
         EmailVerificationConfirmView.as_view(),
         name="email_verify_confirm",
     ),
+    
+    # AdminProfile Endpoints
+    path("admins/", AdminProfileListView.as_view(), name="admin_profile_list"),
+    path("admins/create/", AdminProfileCreateView.as_view(), name="admin_profile_create"),
+    path("admins/<str:admin_id>/", AdminProfileDetailView.as_view(), name="admin_profile_detail"),
+    path("admins/<str:admin_id>/update/", AdminProfileUpdateView.as_view(), name="admin_profile_update"),
+    path("admins/<str:admin_id>/delete/", AdminProfileDeleteView.as_view(), name="admin_profile_delete"),
+    
+    # Current User's Admin Profile
+    path("admin/me/", CurrentAdminProfileView.as_view(), name="current_admin_profile"),
+    path("admin/me/update/", CurrentAdminProfileUpdateView.as_view(), name="current_admin_profile_update"),
 ]

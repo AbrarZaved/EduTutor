@@ -104,3 +104,31 @@ class ParentPreference(models.Model):
         return f"ParentPreference: {self.parent.user.email}"
     
     
+
+class AdminProfile(models.Model):
+    admin_id=models.CharField(max_length=50, blank=False, primary_key=True)
+    user=models.OneToOneField(
+        "core_auth.User",
+        on_delete=models.CASCADE,
+        related_name="admin_profile",
+    )
+    profile_picture=models.ImageField(
+        upload_to="profile_pictures/admins/",
+        blank=True,
+        null=True,
+    )
+    address=models.CharField(max_length=255, blank=True, null=True)
+    location=models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f"AdminProfile: {self.user.email}"
+    
+    def get_full_name(self):
+        """Return the full name of the admin."""
+        return self.user.full_name
+    
+    def save(self, *args, **kwargs):
+        """Override save method to auto-generate admin_id if not provided."""
+        if not self.admin_id:
+            self.admin_id = f"ADM-{self.user.id:06d}"
+        super().save(*args, **kwargs)

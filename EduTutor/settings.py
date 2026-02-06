@@ -96,6 +96,8 @@ INSTALLED_APPS = [
     'Profile',
     'utilities',
     'academics',
+    'AdminDashboard',
+    'ParentDashboard',
 ]
 
 MIDDLEWARE = [
